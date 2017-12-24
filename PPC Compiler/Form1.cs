@@ -232,7 +232,7 @@ namespace PPC_Compiler
 
         private void newToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            editor.Text = ".text\n.org 0\n.globl _start\n\n// Main Entry Point\n_start:\nblr";
+            editor.Text = ".text\r\n.org 0\r\n.globl _start\r\n\r\n// Main Entry Point\r\n_start:\r\nblr";
             editor.CurrentPosition = editor.Text.Length;
             editor.SelectionStart = editor.CurrentPosition;
         }
@@ -266,7 +266,7 @@ namespace PPC_Compiler
                 foreach (string s in Registers)
                     Labels.Add(s, s);
 
-                foreach (Match m in Regex.Matches(Editor.Text, @"^[^:]+:"))
+                foreach (Match m in Regex.Matches(Editor.Text, @"^[^:\r\n]+:\r?\n", RegexOptions.Multiline))
                 {
                     var Value = m.Value.Replace(":", "");
                     Labels[Value] = Value;
