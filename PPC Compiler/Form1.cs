@@ -19,6 +19,7 @@ namespace PPC_Compiler
         AutocompleteMenu RegisterMenu = new AutocompleteMenu();
         OpenFileDialog OpenDialog = new OpenFileDialog();
         SaveFileDialog SaveDialog = new SaveFileDialog();
+        string CompilerOutput = "";
 
         string[] Registers = {
             "r0", "r1", "r2", "r3", "r4", "r5", "r6", "r7", "r8", "r9", "r10", "r11", "r12", "r13", "r14", "r15", "r16", "r17", "r18", "r19", "r20", "r21",
@@ -103,11 +104,22 @@ namespace PPC_Compiler
             RegisterMenu.SetAutocompleteItems(RegisterItems);
         }
 
+        private void OutputHandler(object sendingProcess, DataReceivedEventArgs e)
+        {
+            Console.WriteLine(e.Data);
+            if (!string.IsNullOrEmpty(e.Data) && e.Data.Contains("Error"))
+            {
+                CompilerOutput += e.Data + "\n";
+            }
+        }
+
         private string GetConvertedAssembly()
         {
             var Path = Application.StartupPath;
             if (File.Exists(Path + "\\powerpc-eabi-elf-as.exe") && File.Exists(Path + "\\powerpc-eabi-elf-objcopy.exe"))
             {
+                CompilerOutput = "";
+
                 var PPC_Compiler_Process = new Process();
                 PPC_Compiler_Process.StartInfo.FileName = Path + "\\powerpc-eabi-elf-as.exe";
 
@@ -119,12 +131,22 @@ namespace PPC_Compiler
                 PPC_Compiler_Process.StartInfo.Arguments = "-mregnames -o out.o in.txt";
                 PPC_Compiler_Process.StartInfo.UseShellExecute = false;
                 PPC_Compiler_Process.StartInfo.CreateNoWindow = true;
+                PPC_Compiler_Process.StartInfo.RedirectStandardOutput = true;
+                PPC_Compiler_Process.StartInfo.RedirectStandardError = true;
+                PPC_Compiler_Process.OutputDataReceived += OutputHandler;
+                PPC_Compiler_Process.ErrorDataReceived += OutputHandler;
+
                 PPC_Compiler_Process.Start();
+
+                PPC_Compiler_Process.BeginOutputReadLine();
+                PPC_Compiler_Process.BeginErrorReadLine();
 
                 PPC_Compiler_Process.WaitForExit();
 
                 if (PPC_Compiler_Process.ExitCode != 0)
+                {
                     Console.WriteLine("powerpc-eabi-elf-as.exe exited with: " + PPC_Compiler_Process.ExitCode);
+                }
 
                 var PPC_Binary_Process = new Process();
                 PPC_Binary_Process.StartInfo.FileName = Path + "\\powerpc-eabi-elf-objcopy.exe";
@@ -175,7 +197,7 @@ namespace PPC_Compiler
                     }
                 }
             }
-            return "";
+            return CompilerOutput;
         }
 
         private void buildToolStripMenuItem_Click(object sender, EventArgs e)
