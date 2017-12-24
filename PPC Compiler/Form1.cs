@@ -59,6 +59,8 @@ namespace PPC_Compiler
             editor.Styles[ScintillaNET.Style.Cpp.Number].ForeColor = Color.Olive;
             editor.Styles[ScintillaNET.Style.Cpp.String].ForeColor = Color.FromArgb(163, 21, 21);
             editor.Styles[ScintillaNET.Style.Cpp.Character].ForeColor = Color.FromArgb(163, 21, 21);
+            editor.Styles[ScintillaNET.Style.Cpp.Comment].ForeColor = Color.LightGreen;
+            editor.Styles[ScintillaNET.Style.Cpp.CommentLine].ForeColor = Color.Green;
 
             string Keywords = "";
             foreach (string Instruction in Instructions)
@@ -113,6 +115,29 @@ namespace PPC_Compiler
             }
         }
 
+        private string StripComments(string Text)
+        {
+            string StrippedSource = "";
+            string Line;
+
+            using (var Reader = new StringReader(Text))
+            {
+                while ((Line = Reader.ReadLine()) != null)
+                {
+                    if (Line.Contains("//"))
+                    {
+                        StrippedSource += Line.Substring(0, Line.IndexOf("//")) + "\n";
+                    }
+                    else
+                    {
+                        StrippedSource += Line + "\n";
+                    }
+                }
+            }
+
+            return StrippedSource;
+        }
+
         private string GetConvertedAssembly()
         {
             var Path = Application.StartupPath;
@@ -124,7 +149,7 @@ namespace PPC_Compiler
                 PPC_Compiler_Process.StartInfo.FileName = Path + "\\powerpc-eabi-elf-as.exe";
 
                 var TextFile = File.CreateText(Path + "\\in.txt");
-                TextFile.Write(editor.Text);
+                TextFile.Write(StripComments(editor.Text));
                 TextFile.Flush();
                 TextFile.Close();
 
@@ -235,6 +260,8 @@ namespace PPC_Compiler
         private void newToolStripMenuItem_Click(object sender, EventArgs e)
         {
             editor.Text = ".text\n.org 0\n.globl _start\n\n_start:\nblr";
+            editor.CurrentPosition = editor.Text.Length;
+            editor.SelectionStart = editor.CurrentPosition;
         }
     }
 }
