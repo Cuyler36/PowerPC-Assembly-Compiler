@@ -49,6 +49,7 @@
             this.editor.Dock = System.Windows.Forms.DockStyle.Fill;
             this.editor.Location = new System.Drawing.Point(0, 0);
             this.editor.Name = "editor";
+            this.editor.ScrollWidth = 1;
             this.editor.Size = new System.Drawing.Size(520, 460);
             this.editor.TabIndex = 0;
             // 

@@ -10,23 +10,24 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.IO;
 using System.Diagnostics;
+using System.Text.RegularExpressions;
+using System.Collections;
 
 namespace PPC_Compiler
 {
     public partial class Form1 : Form
     {
-        AutocompleteMenu InstructionMenu = new AutocompleteMenu();
-        AutocompleteMenu RegisterMenu = new AutocompleteMenu();
+        AutocompleteMenu LabelMenu = new AutocompleteMenu();
         OpenFileDialog OpenDialog = new OpenFileDialog();
         SaveFileDialog SaveDialog = new SaveFileDialog();
         string CompilerOutput = "";
 
-        string[] Registers = {
+        public static string[] Registers = {
             "r0", "r1", "r2", "r3", "r4", "r5", "r6", "r7", "r8", "r9", "r10", "r11", "r12", "r13", "r14", "r15", "r16", "r17", "r18", "r19", "r20", "r21",
             "r22", "r23", "r24", "r25", "r26", "r27", "r28", "r29", "r30", "r31"
         };
 
-        string[] Instructions = {
+        public static string[] Instructions = {
             "li", "lis", "add", "addi", "mr", "lbz", "lbzx", "lhz", "lhzx", "lwz", "lwzx", "stb", "sth", "stw", "b", "bl", "bctr", "beq", "bne", "ble", "bge", "blt", "bgt",
             "bdnz", "rlwinm", "addis", "cmpwi", "cmplwi", "cmpw", "cmplw", "mtctr", "and", "or", "andi", "ori", "divwu", "mulli", "srawi", "subf", "subis", "mtlr", "blr",
             "bctrl", "bcctr", "add.", "rlwinm.", "rlwimi", "addo", "addo.", "addc", "addc.", "addco", "addco.", "adde", "adde.", "addeo", "addeo.", "addic", "addic.", 
@@ -39,9 +40,7 @@ namespace PPC_Compiler
             InitializeComponent();
             editor.Margins[0].Type = ScintillaNET.MarginType.Number;
             editor.Margins[0].Width = 28;
-            BuildInstructionAutocompleteMenu();
-            InstructionMenu.TargetControlWrapper = new ScintillaWrapper(editor);
-            RegisterMenu.TargetControlWrapper = new ScintillaWrapper(editor);
+            LabelMenu.TargetControlWrapper = new ScintillaWrapper(editor);
 
             // Construct Custom Lexer
             editor.Lexer = ScintillaNET.Lexer.Cpp;
@@ -80,30 +79,8 @@ namespace PPC_Compiler
             SaveDialog.Filter = "PowerPC Assembly Source Files|*.pas|Text Files|*.txt|All Files|*.*";
             SaveDialog.DefaultExt = "PowerPC Assembly Source Files|*.pas";
             SaveDialog.FileName = "";
-        }
 
-        private void BuildInstructionAutocompleteMenu()
-        {
-            var InstructionItems = new List<AutocompleteItem>();
-            
-            foreach (var Item in Instructions)
-            {
-                InstructionItems.Add(new SnippetAutocompleteItem(Item) { ImageIndex = 1 });
-            }
-
-            InstructionMenu.SetAutocompleteItems(InstructionItems);
-        }
-
-        private void BuildRegisterAutocompleteMenu()
-        {
-            var RegisterItems = new List<AutocompleteItem>();
-
-            foreach (var Item in Registers)
-            {
-                RegisterItems.Add(new SnippetAutocompleteItem(Item) { ImageIndex = 1 });
-            }
-
-            RegisterMenu.SetAutocompleteItems(RegisterItems);
+            LabelMenu.SetAutocompleteItems(new DynamicCollection(editor));
         }
 
         private void OutputHandler(object sendingProcess, DataReceivedEventArgs e)
@@ -259,9 +236,49 @@ namespace PPC_Compiler
 
         private void newToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            editor.Text = ".text\n.org 0\n.globl _start\n\n_start:\nblr";
+            editor.Text = ".text\n.org 0\n.globl _start\n\n// Main Entry Point\n_start:\nblr";
             editor.CurrentPosition = editor.Text.Length;
             editor.SelectionStart = editor.CurrentPosition;
+        }
+
+        internal class DynamicCollection : IEnumerable<AutocompleteItem>
+        {
+            ScintillaNET.Scintilla Editor;
+
+            public DynamicCollection(ScintillaNET.Scintilla editor)
+            {
+                Editor = editor;
+            }
+
+            IEnumerator IEnumerable.GetEnumerator()
+            {
+                return this.GetEnumerator();
+            }
+
+            public IEnumerator<AutocompleteItem> GetEnumerator()
+            {
+                return BuildList().GetEnumerator();
+            }
+
+            private IEnumerable<AutocompleteItem> BuildList()
+            {
+                var Labels = new Dictionary<string, string>();
+
+                foreach (string s in Instructions)
+                    Labels.Add(s, s);
+
+                foreach (string s in Registers)
+                    Labels.Add(s, s);
+
+                foreach (Match m in Regex.Matches(Editor.Text, @"^[^:]+:"))
+                {
+                    var Value = m.Value.Replace(":", "");
+                    Labels[Value] = Value;
+                }
+
+                foreach (var Label in Labels.Keys)
+                    yield return new AutocompleteItem(Label);
+            }
         }
     }
 }
