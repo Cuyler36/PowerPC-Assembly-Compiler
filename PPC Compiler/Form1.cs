@@ -77,14 +77,18 @@ namespace PPC_Compiler
             SaveDialog.FileName = "";
 
             LabelMenu.SetAutocompleteItems(new DynamicCollection(editor));
+            toolStripComboBox1.SelectedIndex = 0;
         }
 
         private void OutputHandler(object sendingProcess, DataReceivedEventArgs e)
         {
-            Console.WriteLine(e.Data);
-            if (!string.IsNullOrEmpty(e.Data) && e.Data.Contains("Error"))
+            if (!string.IsNullOrEmpty(e.Data))
             {
-                CompilerOutput += e.Data + "\n";
+                Console.WriteLine(e.Data);
+                if (e.Data.Contains("Error"))
+                {
+                    CompilerOutput += e.Data + "\n";
+                }
             }
         }
 
@@ -111,6 +115,96 @@ namespace PPC_Compiler
             return StrippedSource;
         }
 
+        private void RunExecutable(string ProcessPath, string Arguments)
+        {
+            var ExecutableProcess = new Process();
+            ExecutableProcess.StartInfo.FileName = ProcessPath;
+            ExecutableProcess.StartInfo.Arguments = Arguments;
+            ExecutableProcess.StartInfo.UseShellExecute = false;
+            ExecutableProcess.StartInfo.CreateNoWindow = true;
+            ExecutableProcess.StartInfo.RedirectStandardOutput = true;
+            ExecutableProcess.StartInfo.RedirectStandardError = true;
+            ExecutableProcess.OutputDataReceived += OutputHandler;
+            ExecutableProcess.ErrorDataReceived += OutputHandler;
+
+            ExecutableProcess.Start();
+
+            ExecutableProcess.BeginOutputReadLine();
+            ExecutableProcess.BeginErrorReadLine();
+
+            ExecutableProcess.WaitForExit();
+
+            if (ExecutableProcess.ExitCode != 0)
+            {
+                Console.WriteLine(Path.GetFileName(ProcessPath) + " exited with: " + ExecutableProcess.ExitCode);
+            }
+        }
+
+        private string CompileGekkoAssembly(string input)
+        {
+            var Path = Application.StartupPath;
+            var gekkoAs = Path + "\\powerpc-gekko-as.exe";
+            var gekkoLd = Path + "\\powerpc-gekko-ld.exe";
+            var gekkoObjCopy = Path + "\\powerpc-gekko-objcopy.exe";
+
+            CompilerOutput = "";
+
+            if (File.Exists(gekkoAs) && File.Exists(gekkoLd) && File.Exists(gekkoObjCopy))
+            {
+                var TextFile = File.CreateText(Path + "\\in.txt");
+                TextFile.Write(StripComments(editor.Text));
+                TextFile.Flush();
+                TextFile.Close();
+
+                RunExecutable(gekkoAs, "-mregnames -mgekko in.txt -o out.o");
+
+                if (File.Exists(Path + "\\in.txt"))
+                {
+                    File.Delete(Path + "\\in.txt");
+                }
+
+                if (File.Exists(Path + "\\out.o"))
+                {
+                    RunExecutable(gekkoLd, "-Ttext 0x80000000 out.o");
+                    RunExecutable(gekkoObjCopy, "-O binary out.o out.bin");
+
+                    File.Delete(Path + "\\out.o");
+
+                    if (File.Exists(Path + "\\out.bin"))
+                    {
+                        try
+                        {
+                            string PPCHexAssemblyString = "";
+                            var Data = File.ReadAllBytes(Path + "\\out.bin");
+                            File.Delete(Path + "\\out.bin");
+
+                            int[] ConvertedData = new int[Data.Length / 4];
+                            for (int i = 0; i < ConvertedData.Length; i++)
+                            {
+                                int idx = i * 4;
+                                ConvertedData[i] = (Data[idx] << 24) | (Data[idx + 1] << 16) | (Data[idx + 2] << 8) | Data[idx + 3];
+                            }
+
+                            for (int i = 0; i < ConvertedData.Length; i++)
+                            {
+                                PPCHexAssemblyString += ConvertedData[i].ToString("X8") + "\r\n";
+                            }
+
+                            Debug.WriteLine(PPCHexAssemblyString);
+
+                            return PPCHexAssemblyString;
+                        }
+                        catch
+                        {
+
+                        }
+                    }
+                }
+            }
+
+            return CompilerOutput;
+        }
+
         private string GetConvertedAssembly()
         {
             var Path = Application.StartupPath;
@@ -118,42 +212,13 @@ namespace PPC_Compiler
             {
                 CompilerOutput = "";
 
-                var PPC_Compiler_Process = new Process();
-                PPC_Compiler_Process.StartInfo.FileName = Path + "\\powerpc-eabi-elf-as.exe";
-
                 var TextFile = File.CreateText(Path + "\\in.txt");
                 TextFile.Write(StripComments(editor.Text));
                 TextFile.Flush();
                 TextFile.Close();
 
-                PPC_Compiler_Process.StartInfo.Arguments = "-mregnames -o out.o in.txt";
-                PPC_Compiler_Process.StartInfo.UseShellExecute = false;
-                PPC_Compiler_Process.StartInfo.CreateNoWindow = true;
-                PPC_Compiler_Process.StartInfo.RedirectStandardOutput = true;
-                PPC_Compiler_Process.StartInfo.RedirectStandardError = true;
-                PPC_Compiler_Process.OutputDataReceived += OutputHandler;
-                PPC_Compiler_Process.ErrorDataReceived += OutputHandler;
-
-                PPC_Compiler_Process.Start();
-
-                PPC_Compiler_Process.BeginOutputReadLine();
-                PPC_Compiler_Process.BeginErrorReadLine();
-
-                PPC_Compiler_Process.WaitForExit();
-
-                if (PPC_Compiler_Process.ExitCode != 0)
-                {
-                    Console.WriteLine("powerpc-eabi-elf-as.exe exited with: " + PPC_Compiler_Process.ExitCode);
-                }
-
-                var PPC_Binary_Process = new Process();
-                PPC_Binary_Process.StartInfo.FileName = Path + "\\powerpc-eabi-elf-objcopy.exe";
-                PPC_Binary_Process.StartInfo.Arguments = "-O binary out.o out.bin";
-                PPC_Binary_Process.StartInfo.UseShellExecute = false;
-                PPC_Binary_Process.StartInfo.CreateNoWindow = true;
-                PPC_Binary_Process.Start();
-
-                PPC_Binary_Process.WaitForExit();
+                RunExecutable(Path + "\\powerpc-eabi-elf-as.exe", "-mregnames -o out.o in.txt");
+                RunExecutable(Path + "\\powerpc-eabi-elf-objcopy.exe", "-O binary out.o out.bin");
 
                 if (File.Exists(Path + "\\in.txt"))
                 {
@@ -200,7 +265,12 @@ namespace PPC_Compiler
 
         private void buildToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            var PPCString = GetConvertedAssembly();
+            var PPCString = "";
+            if (toolStripComboBox1.SelectedIndex == 0)
+                PPCString = GetConvertedAssembly();
+            else if (toolStripComboBox1.SelectedIndex == 1)
+                PPCString = CompileGekkoAssembly(StripComments(editor.Text));
+
             outputTextBox.Text = PPCString;
         }
 
