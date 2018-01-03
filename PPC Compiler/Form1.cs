@@ -138,6 +138,8 @@ namespace PPC_Compiler
             {
                 Console.WriteLine(Path.GetFileName(ProcessPath) + " exited with: " + ExecutableProcess.ExitCode);
             }
+
+            ExecutableProcess.Close();
         }
 
         private string CompileGekkoAssembly(string input)
