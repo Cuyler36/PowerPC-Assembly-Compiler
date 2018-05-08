@@ -20,7 +20,7 @@ namespace PPC_Compiler
 
         public static string[] Registers = {
             "r0", "r1", "r2", "r3", "r4", "r5", "r6", "r7", "r8", "r9", "r10", "r11", "r12", "r13", "r14", "r15", "r16", "r17", "r18", "r19", "r20", "r21",
-            "r22", "r23", "r24", "r25", "r26", "r27", "r28", "r29", "r30", "r31"
+            "r22", "r23", "r24", "r25", "r26", "r27", "r28", "r29", "r30", "r31", "cr0", "cr1", "cr2", "cr3", "cr4", "cr5", "cr6", "cr7"
         };
 
         public static string[] Instructions = {
@@ -29,6 +29,13 @@ namespace PPC_Compiler
             "bctrl", "bcctr", "add.", "rlwinm.", "rlwimi", "addo", "addo.", "addc", "addc.", "addco", "addco.", "adde", "adde.", "addeo", "addeo.", "addic", "addic.", 
             "addme", "addme.", "addmeo", "addmeo.", "addze", "addze.", "addzeo", "addzeo.", "and.", "andc", "andc.", "andi.", "andis", "andis.", "ba", "bla", "bclr",
             "bclrl", "cmp", "cmpi", "cmpl", "cmpli", "cntlzw", "cntlzw.", "crand", "crandc", "creqv", "crnand", "crnor", "cror", "crorc", "crxor", "stwu", "mflr",
+            "nop", "mtcr", "mfcr", "mtcrf", "cmpd", "cmpld", "div", "div.", "divo", "divo.", "divdu", "divdu.", "divduo", "divduo.", "divw", "divw.", "divwo", "divwo.",
+            "divwu.", "divwuo", "divwuo.", "extsw", "extsw.", "eqv", "eqv.", "extsb", "extsb.", "extsh", "extsh.", "fabs", "fabs.", "fadd", "fadd.", "fcfid", "fcfid.",
+            "fcmpo", "fcmpu", "fctid", "fctid.", "fctidz", "fctidz.", "fctiw", "fctiw.", "fctiwz", "fctiwz.", "fdiv", "fdiv.", "fmadd", "fmadd.", "fmr", "fmr.", "fmsub",
+            "fmsub.", "fmul", "fmul.", "fnabs", "fnabs.", "fneg", "fneg.", "fnmadd", "fnmadd.", "fnmsub", "fnmsub.", "fres", "fres.", "frsp", "frsp.", "frsqte", "frsqte.",
+            "fsel", "fsel.", "fsqrt", "fsqrt.", "fsqrts", "fsqrts.", "fsub", "fsub.", "lbzu", "lbzux", "lfd", "lfdu", "lfdux", "lfdx", "lfs", "lfsu", "lfsux", "lfsx", "lha",
+            "lhau", "lhaux", "lhax", "lhbrx", "lhzu", "lhzux", "lmw", "lswi", "lswx", "lwarx", "lwbrx", "lwzu", "lwzux", "mcrf", "mcrfs", "mcrxr", "mffs", "mfmsr", "mfocrf",
+            "mfspr", "mfsr", "mfsrin", "mtfsb0", "mtfsb0.", "mtfsb1", "mtfsb1.", "mtfsf", "mtfsf.", "mtfsfi", "mtfsfi.", "mtocrf", "mtspr", "mul"
         };
 
         public Form1()
@@ -43,19 +50,29 @@ namespace PPC_Compiler
             editor.StyleResetDefault();
             editor.Styles[ScintillaNET.Style.Default].Font = "Consolas";
             editor.Styles[ScintillaNET.Style.Default].Size = 10;
-            editor.Styles[ScintillaNET.Style.Default].BackColor = Color.DarkGray;
-            editor.Styles[ScintillaNET.Style.Default].BackColor = Color.White;
+            editor.Styles[ScintillaNET.Style.Default].BackColor = Color.FromArgb(30, 30, 30);
+            editor.Styles[ScintillaNET.Style.Default].ForeColor = Color.FromArgb(220, 220, 220);
+            editor.SetSelectionBackColor(true, Color.DarkGray);
+            //editor.Styles[ScintillaNET.Style.Default].BackColor = Color.White;
             editor.StyleClearAll();
 
-            editor.Styles[ScintillaNET.Style.Cpp.Default].BackColor = Color.DarkGray;
-            editor.Styles[ScintillaNET.Style.Cpp.Default].BackColor = Color.White;
-            editor.Styles[ScintillaNET.Style.Cpp.Word].ForeColor = Color.Blue;
-            editor.Styles[ScintillaNET.Style.Cpp.Word2].ForeColor = Color.LightSeaGreen;
-            editor.Styles[ScintillaNET.Style.Cpp.Number].ForeColor = Color.Olive;
-            editor.Styles[ScintillaNET.Style.Cpp.String].ForeColor = Color.FromArgb(163, 21, 21);
-            editor.Styles[ScintillaNET.Style.Cpp.Character].ForeColor = Color.FromArgb(163, 21, 21);
+            editor.Styles[ScintillaNET.Style.Cpp.Default].BackColor = Color.FromArgb(30, 30, 30);
+            editor.Styles[ScintillaNET.Style.Cpp.Default].ForeColor = Color.FromArgb(220, 220, 220);
+            //editor.Styles[ScintillaNET.Style.Cpp.Default].BackColor = Color.White;
+            editor.Styles[ScintillaNET.Style.Cpp.Word].ForeColor = Color.FromArgb(86, 156, 214);
+            editor.Styles[ScintillaNET.Style.Cpp.Word2].ForeColor = Color.FromArgb(136, 198, 190);
+            editor.Styles[ScintillaNET.Style.Cpp.Number].ForeColor = Color.FromArgb(181, 206, 168);
+            editor.Styles[ScintillaNET.Style.Cpp.String].ForeColor = Color.FromArgb(214, 157, 133);
+            editor.Styles[ScintillaNET.Style.Cpp.Character].ForeColor = Color.FromArgb(214, 157, 133);
             editor.Styles[ScintillaNET.Style.Cpp.Comment].ForeColor = Color.LightGreen;
-            editor.Styles[ScintillaNET.Style.Cpp.CommentLine].ForeColor = Color.Green;
+            editor.Styles[ScintillaNET.Style.Cpp.CommentLine].ForeColor = Color.FromArgb(87, 166, 74);
+            
+            editor.CaretForeColor = Color.FromArgb(220, 220, 220);
+            editor.Styles[ScintillaNET.Style.LineNumber].BackColor = Color.FromArgb(40, 40, 40);
+            editor.Styles[ScintillaNET.Style.LineNumber].ForeColor = Color.FromArgb(43, 145, 175);
+
+            outputTextBox.BackColor = Color.FromArgb(30, 30, 30);
+            outputTextBox.ForeColor = Color.FromArgb(220, 220, 220);
 
             string Keywords = "";
             foreach (string Instruction in Instructions)
@@ -90,6 +107,35 @@ namespace PPC_Compiler
                     CompilerOutput += e.Data + "\n";
                 }
             }
+        }
+
+        private string CheckAndGetTtextOffset(string Text, out uint Ttext)
+        {
+            string StrippedSource = "";
+            string Line;
+            Ttext = 0x80000000;
+
+            using (var Reader = new StringReader(Text))
+            {
+                while ((Line = Reader.ReadLine()) != null)
+                {
+                    var Lower = Line.ToLower();
+                    if (Lower.Contains(".offset"))
+                    {
+                        string Offset = Lower.Substring(Lower.IndexOf(".offset") + 8).Replace("0x", "");
+                        if (uint.TryParse(Offset, System.Globalization.NumberStyles.HexNumber, null, out uint ParsedTtext))
+                        {
+                            Ttext = ParsedTtext;
+                        }
+                    }
+                    else
+                    {
+                        StrippedSource += Line + "\n";
+                    }
+                }
+            }
+
+            return StrippedSource;
         }
 
         private string StripComments(string Text)
@@ -153,8 +199,11 @@ namespace PPC_Compiler
 
             if (File.Exists(gekkoAs) && File.Exists(gekkoLd) && File.Exists(gekkoObjCopy))
             {
+                var CommentStrippedText = StripComments(editor.Text);
+                var TtextStrippedText = CheckAndGetTtextOffset(CommentStrippedText, out uint StartOffset);
+
                 var TextFile = File.CreateText(Path + "\\in.txt");
-                TextFile.Write(StripComments(editor.Text));
+                TextFile.Write(TtextStrippedText);
                 TextFile.Flush();
                 TextFile.Close();
 
@@ -167,7 +216,7 @@ namespace PPC_Compiler
 
                 if (File.Exists(Path + "\\out.o"))
                 {
-                    RunExecutable(gekkoLd, "-Ttext 0x80000000 out.o");
+                    RunExecutable(gekkoLd, "-Ttext 0x" + StartOffset.ToString("X8") + " out.o");
                     RunExecutable(gekkoObjCopy, "-O binary out.o out.bin");
 
                     File.Delete(Path + "\\out.o");
@@ -214,12 +263,16 @@ namespace PPC_Compiler
             {
                 CompilerOutput = "";
 
+                var CommentStrippedText = StripComments(editor.Text);
+                var TtextStrippedText = CheckAndGetTtextOffset(CommentStrippedText, out uint StartOffset);
+
                 var TextFile = File.CreateText(Path + "\\in.txt");
-                TextFile.Write(StripComments(editor.Text));
+                TextFile.Write(TtextStrippedText);
                 TextFile.Flush();
                 TextFile.Close();
 
                 RunExecutable(Path + "\\powerpc-eabi-elf-as.exe", "-mregnames -o out.o in.txt");
+                RunExecutable(Path + "\\powerpc-eabi-ld.exe", "-Ttext 0x" + StartOffset.ToString("X8") + " out.o");
                 RunExecutable(Path + "\\powerpc-eabi-elf-objcopy.exe", "-O binary out.o out.bin");
 
                 if (File.Exists(Path + "\\in.txt"))
@@ -341,6 +394,13 @@ namespace PPC_Compiler
                 foreach (Match m in Regex.Matches(Editor.Text, @"^[^:\r\n]+:\r?\n", RegexOptions.Multiline))
                 {
                     var Value = m.Value.Replace(":", "");
+                    Labels[Value] = Value;
+                }
+
+                // Find any data strings
+                foreach (Match m in Regex.Matches(Editor.Text, @"^[^\r\n\s=]+\s*=\s*.*\r?\n?", RegexOptions.Multiline))
+                {
+                    var Value = m.Value.Substring(0, m.Value.IndexOf("=") - 1);
                     Labels[Value] = Value;
                 }
 

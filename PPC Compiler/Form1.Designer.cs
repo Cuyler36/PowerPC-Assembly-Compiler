@@ -35,10 +35,10 @@
             this.saveToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.newToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.buildToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.splitContainer1 = new System.Windows.Forms.SplitContainer();
-            this.outputTextBox = new System.Windows.Forms.RichTextBox();
             this.compilerToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripComboBox1 = new System.Windows.Forms.ToolStripComboBox();
+            this.splitContainer1 = new System.Windows.Forms.SplitContainer();
+            this.outputTextBox = new System.Windows.Forms.RichTextBox();
             this.menuStrip1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
             this.splitContainer1.Panel1.SuspendLayout();
@@ -113,6 +113,23 @@
             this.buildToolStripMenuItem.Text = "Build";
             this.buildToolStripMenuItem.Click += new System.EventHandler(this.buildToolStripMenuItem_Click);
             // 
+            // compilerToolStripMenuItem
+            // 
+            this.compilerToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.toolStripComboBox1});
+            this.compilerToolStripMenuItem.Name = "compilerToolStripMenuItem";
+            this.compilerToolStripMenuItem.Size = new System.Drawing.Size(68, 20);
+            this.compilerToolStripMenuItem.Text = "Compiler";
+            // 
+            // toolStripComboBox1
+            // 
+            this.toolStripComboBox1.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.toolStripComboBox1.Items.AddRange(new object[] {
+            "PPC",
+            "Gekko"});
+            this.toolStripComboBox1.Name = "toolStripComboBox1";
+            this.toolStripComboBox1.Size = new System.Drawing.Size(121, 23);
+            // 
             // splitContainer1
             // 
             this.splitContainer1.Dock = System.Windows.Forms.DockStyle.Fill;
@@ -134,29 +151,13 @@
             // 
             this.outputTextBox.BackColor = System.Drawing.SystemColors.Window;
             this.outputTextBox.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.outputTextBox.ForeColor = System.Drawing.SystemColors.Window;
             this.outputTextBox.Location = new System.Drawing.Point(0, 0);
             this.outputTextBox.Name = "outputTextBox";
             this.outputTextBox.ReadOnly = true;
             this.outputTextBox.Size = new System.Drawing.Size(115, 460);
             this.outputTextBox.TabIndex = 1;
             this.outputTextBox.Text = "";
-            // 
-            // compilerToolStripMenuItem
-            // 
-            this.compilerToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.toolStripComboBox1});
-            this.compilerToolStripMenuItem.Name = "compilerToolStripMenuItem";
-            this.compilerToolStripMenuItem.Size = new System.Drawing.Size(68, 20);
-            this.compilerToolStripMenuItem.Text = "Compiler";
-            // 
-            // toolStripComboBox1
-            // 
-            this.toolStripComboBox1.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            this.toolStripComboBox1.Items.AddRange(new object[] {
-            "EABI",
-            "Gekko"});
-            this.toolStripComboBox1.Name = "toolStripComboBox1";
-            this.toolStripComboBox1.Size = new System.Drawing.Size(121, 23);
             // 
             // Form1
             // 
